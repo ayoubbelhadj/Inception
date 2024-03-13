@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx-container
+    image: nginx-image
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - net-work
+    depends_on:
+      - wordpress
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb-container
+    image: mariadb-image
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - net-work
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress-container
+    image: wordpress-image
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - net-work
+    depends_on:
+      - mariadb
+
+networks:
+  net-work:
+    name: net-work
+    driver: bridge
+  
+volumes:
+  mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      type: 'none'
+      device: '/home/abelhadj/data/db'
+      o: 'bind'
+  wordpress:
+    name: wordpress
+    driver: local
+    driver_opts:
+      type: 'none'
+      device: '/home/abelhadj/data/wp'
+      o: 'bind'
