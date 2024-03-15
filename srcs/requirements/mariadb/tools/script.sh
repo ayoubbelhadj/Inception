@@ -1,19 +1,16 @@
-#!/bin/bash
+# #!/bin/bash
 
-# Start MariaDB service
 service mariadb start
 
+sleep 1
 
-# Create a new database and user
-mariadb <<MYSQL_SCRIPT
-CREATE DATABASE IF NOT EXISTS $DB_NAME;
-CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
-GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
-FLUSH PRIVILEGES;
+mariadb << MYSQL_SCRIPT
+CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
+CREATE USER IF NOT EXISTS \`${DB_USER}\`@'localhost' IDENTIFIED BY '${DB_PASS}';
+GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO \`${DB_USER}\`@'%' IDENTIFIED BY '${DB_PASS}';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';
 MYSQL_SCRIPT
 
-# Stop MariaDB service
-service mariadb stop
+mysqladmin -u root -p$DB_ROOT_PASSWORD shutdown
 
-# Start MariaDB in the foreground to keep the container running
-mysqld_safe --bind 0.0.0.0 --port 3306
+mysqld_safe

@@ -1,19 +1,23 @@
 FROM debian:bullseye
 
-# Update package lists and install nginx
-RUN apt-get update && apt-get upgrade -y && apt-get install -y nginx
-
-# Install OpenSSL
-RUN apt-get install -y openssl
-
-# Generate self-signed SSL certificate
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/server.key -out /etc/nginx/server.crt -subj "/C=US/ST=CA/L=San Francisco/O=Example/OU=Web Security/CN=localhost"
-
-# Copy default Nginx configuration
-COPY conf/default /etc/nginx/sites-available/default
-
-# Expose port 443
+#container will listen to this port at runtime. Its mapped to the hosts 443 (docker compose)
 EXPOSE 443
 
-# Start Nginx when the container launches
-CMD ["nginx", "-g", "daemon off;"]
+#update and upgrade all packages in the container
+RUN apt update -y && apt upgrade -y
+
+#install the nginx and openssl
+RUN apt install nginx -y && apt install openssl -y
+
+RUN mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -newkey rsa:4096 -days 365\
+		-out /etc/nginx/server.crt -keyout /etc/nginx/server.key \
+		-subj "/CN=abelhadj.42.fr/UID=abelhadj"
+
+#create a new directory in the container
+RUN mkdir -p /run/nginx
+
+#copy the server config from the host machine repo to the container
+COPY conf/default /etc/nginx/sites-available/default
+
+#run the service in the foreground
+CMD [ "nginx", "-g", "daemon off;" ]

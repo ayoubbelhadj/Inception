@@ -1,55 +1,66 @@
 version: '3'
 
 services:
-  nginx:
-    build: ./requirements/nginx
-    container_name: nginx-container
-    image: nginx-image
-    ports:
-      - "443:443"
-    volumes:
-      - wordpress:/var/www/html
-    networks:
-      - net-work
-    depends_on:
-      - wordpress
-  mariadb:
-    build: ./requirements/mariadb
-    container_name: mariadb-container
-    image: mariadb-image
-    volumes:
-      - mariadb:/var/lib/mysql
-    networks:
-      - net-work
+    nginx:
+        build:
+            context: requirements/nginx
+            dockerfile: Dockerfile
+        container_name: nginx
+        image: nginx
+        ports:
+            - "443:443"
+        volumes:
+            - wordpress_vol:/var/www/html
+        networks:
+            - net-work
+        depends_on:
+            - wordpress
+        restart: on-failure
 
-  wordpress:
-    build: ./requirements/wordpress
-    container_name: wordpress-container
-    image: wordpress-image
-    volumes:
-      - wordpress:/var/www/html
-    networks:
-      - net-work
-    depends_on:
-      - mariadb
+    mariadb:
+        build:
+            context: requirements/mariadb
+            dockerfile: Dockerfile
+        restart: on-failure
+        container_name: mariadb
+        image: mariadb
+        volumes:
+            - mariadb_vol:/var/lib/mysql
+        networks:
+            - net-work
+        env_file:
+            - ./.env
+
+    wordpress:
+        build:
+            context: requirements/wordpress
+            dockerfile: Dockerfile
+        restart: on-failure
+        container_name: wordpress
+        image: wordpress
+        volumes:
+            - wordpress_vol:/var/www/html
+        networks:
+            - net-work
+        depends_on:
+            - mariadb
+        env_file:
+            - ./.env
 
 networks:
-  net-work:
-    name: net-work
-    driver: bridge
+    net-work:
+        driver: bridge
   
 volumes:
-  mariadb:
-    name: mariadb
-    driver: local
-    driver_opts:
-      type: 'none'
-      device: '/home/abelhadj/data/db'
-      o: 'bind'
-  wordpress:
-    name: wordpress
-    driver: local
-    driver_opts:
-      type: 'none'
-      device: '/home/abelhadj/data/wp'
-      o: 'bind'
+    mariadb_vol:
+        driver: local
+        driver_opts:
+            type: 'none'
+            device: '/home/abelhadj/data/db'
+            o: 'bind'
+    wordpress_vol:
+        driver: local
+        driver_opts:
+            type: 'none'
+            device: '/home/abelhadj/data/wp'
+            o: 'bind'
