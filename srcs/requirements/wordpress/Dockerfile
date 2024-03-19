@@ -1,17 +1,17 @@
 FROM debian:bullseye
 
-# Install PHP, required extensions for WordPress, and WP-CLI
 RUN apt update
-RUN apt install -y php
-RUN apt install -y php-fpm
-RUN apt install -y php-mysql
-RUN apt install -y curl
-RUN apt install -y sendmail 
 
-RUN sed -i 's#listen = /run/php/php7.4-fpm.sock#listen = 9000#' /etc/php/7.4/fpm/pool.d/www.conf
+RUN apt install -y php php-fpm php-mysql curl
 
-COPY ./tools/script.sh .
+RUN apt upgrade -y
+
+COPY ./tools/script.sh /usr/local/bin
+
+WORKDIR /usr/local/bin/
+
+RUN chmod +x ./script.sh
 
 EXPOSE 9000
 
-CMD ["bash", "script.sh"]
+CMD ["./script.sh"]
